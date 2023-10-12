@@ -1,0 +1,92 @@
+---
+title: "nbaDataPresentation"
+author: "Will Jacobsen & Broghan O'connor"
+date: "2023-10-12"
+output: html_document
+---
+
+```{r}
+setwd("~/MSBA/GrowIrish/Presentation")
+
+nbaAdvancedData <- read.csv("nba_advacned_stats.csv")
+nbaPlayer <- read.csv("nba_player_box_score.csv")
+
+```
+
+
+
+```{r}
+library(dplyr)
+
+rateVsAvg <- nbaAdvancedData %>%
+  summarise(meanOffRating = mean(OFF_RATING), 
+            meanDefRating = mean(DEF_RATING))
+  
+
+
+
+ratingSummary <- nbaAdvancedData %>%
+  group_by(TEAM_ABBREVIATION) %>%
+  summarise(meanOffRating = mean(OFF_RATING), 
+            meanDefRating = mean(DEF_RATING)) %>%
+  mutate(offRank = rank(-meanOffRating), 
+         defRank = rank(meanDefRating),
+         vsOffAvg = meanOffRating - 106.3747,
+         vsDefAvg = -(meanDefRating - 106.3747))
+
+
+  
+
+```
+
+
+```{r}
+library(ggplot2)
+
+
+ggplot(data = ratingSummary, aes(x = vsOffAvg, y = vsDefAvg, label = TEAM_ABBREVIATION)) +
+  geom_point() +
+  geom_text(hjust = 0.5, vjust = -0.5, size = 3) +
+  labs(title = "NBA Team Offensive vs Defensive Efficieny",
+       x = "Offensive Efficieny",
+       y = "Defensive Efficieny") +
+  lims(x = c(-5, 5), y = c(-5, 5)) + 
+  geom_hline(yintercept = 0, linetype = "dashed", color = "black") +
+  geom_vline(xintercept = 0, linetype = "dashed", color = "black") +
+  annotate("text", x = 3.5, y = 5, label = "Above avg offense and above avg defense", color = "black", size = 2) +
+  annotate("text", x = -3.5, y = 5, label = "Below avg offense and above avg defense", color = "black", size = 2) +
+  annotate("text", x = 3.5, y = -5, label = "Above avg offense and below avg defense", color = "black", size = 2) +
+  annotate("text", x = -3.5, y = -5, label = "Below avg offense and below avg defense", color = "black", size = 2) +
+  theme_classic()
+
+
+
+
+
+```
+
+```{r}
+library(dplyr)
+wins <- nbaAdvancedData %>%
+  group_by(TEAM_NAME) %>%
+  summarise(Wins = sum(WL == "W"),
+            assists = mean(AST_RATIO, na.rm = TRUE)) %>%
+          arrange(desc(Wins))
+     
+ 
+ 
+library(ggplot2)
+wins_graph <- ggplot(wins, aes(x =Wins , y= reorder(TEAM_NAME, Wins))) + geom_bar(stat="identity")
+print(wins_graph)
+
+```
+
+
+
+
+
+
+
+
+
+
